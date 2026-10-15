@@ -1,0 +1,233 @@
+[
+  {
+    "id": "01",
+    "url": "https://de7i3bh7bgh0d.cloudfront.net/2018/10/18/18/46/42/64b7f7bf-9fd3-4d7e-be9e-c8be3f31f0e1/BleachGoodbye.jpg",
+    "original": "assets/rukia-originals/01.jpg",
+    "size": [
+      630,
+      560
+    ],
+    "sha256": "f47eada8496c8508ee8c7b269f125abe2eccaeb3138cda1b410c26c61c2fa7d8",
+    "previewBytes": 24098
+  },
+  {
+    "id": "02",
+    "url": "https://livedoor.blogimg.jp/anigei-mangabox/imgs/7/c/7cb8f4bf.jpg",
+    "original": "assets/rukia-originals/02.jpg",
+    "size": [
+      564,
+      463
+    ],
+    "sha256": "9184a68ee2507819dc90da29e22451af577ac29bd1d0423cf261eb6e166f89e4",
+    "previewBytes": 22216
+  },
+  {
+    "id": "03",
+    "url": "https://i.pinimg.com/736x/14/e8/a5/14e8a510230074cd8d414a28b832f0a3.jpg",
+    "original": "assets/rukia-originals/03.jpg",
+    "size": [
+      736,
+      1194
+    ],
+    "sha256": "0c0a12b23bdd77a2b1669ea66c7a0d17efc88dbce7d7fed7b83aad9af3989ed6",
+    "previewBytes": 41814
+  },
+  {
+    "id": "04",
+    "url": "https://i.pinimg.com/736x/1c/7b/68/1c7b685488f4ae1ff0505a0c34de19fe.jpg",
+    "original": "assets/rukia-originals/04.jpg",
+    "size": [
+      616,
+      616
+    ],
+    "sha256": "41988865056cf0807063df0a91809ef8aa45c66dd36c1119b005689800494aad",
+    "previewBytes": 15300
+  },
+  {
+    "id": "05",
+    "url": "https://i.pinimg.com/736x/4e/96/e9/4e96e9399bef8b984fa8c84072801921.jpg",
+    "original": "assets/rukia-originals/05.jpg",
+    "size": [
+      640,
+      831
+    ],
+    "sha256": "8fe0609559a16592056732fdd4c554cd2a0e0ec45690467b1f414a5cea56bdf6",
+    "previewBytes": 19608
+  },
+  {
+    "id": "06",
+    "url": "https://i.servimg.com/u/f23/16/43/25/50/bleach85.jpg",
+    "original": "assets/rukia-originals/06.jpg",
+    "size": [
+      800,
+      654
+    ],
+    "sha256": "8d12e7064e94bd4f71d4080e29a209d397c8787a6448eade29964779b497005a",
+    "previewBytes": 25092
+  },
+  {
+    "id": "07",
+    "url": "https://i.servimg.com/u/f23/16/43/25/50/bleach79.jpg",
+    "original": "assets/rukia-originals/07.jpg",
+    "size": [
+      799,
+      651
+    ],
+    "sha256": "cc42f9d02a0389a0f648b489f7e851f5df66305be753ca68a809a1553930d6dd",
+    "previewBytes": 29872
+  },
+  {
+    "id": "08",
+    "url": "https://i.pinimg.com/736x/78/11/f4/7811f46998f2f386a8e09809f3fedf10.jpg",
+    "original": "assets/rukia-originals/08.jpg",
+    "size": [
+      652,
+      1023
+    ],
+    "sha256": "31dda2a4b44ded3a573b1248628c8a42de88ef896ec0124f514df443eacdbecb",
+    "previewBytes": 36416
+  },
+  {
+    "id": "09",
+    "url": "https://i.pinimg.com/736x/49/c7/d6/49c7d6f3e0f6ebec2e1fb40c991a552d.jpg",
+    "original": "assets/rukia-originals/09.jpg",
+    "size": [
+      438,
+      640
+    ],
+    "sha256": "40268aa1baf9b2b760096b4644b5b2b22ba75e1489969f63f58ebc2eb88f3764",
+    "previewBytes": 40542
+  },
+  {
+    "id": "10",
+    "url": "https://dip6t338iqjb9.cloudfront.net/user_data/img/special/20221001_syueisya_bleach/004.jpg",
+    "original": "assets/rukia-originals/10.jpg",
+    "size": [
+      716,
+      1212
+    ],
+    "sha256": "77559be24269923e14de161547b19f2e4fcd34937e7ce9ad510cce3ab00a0803",
+    "previewBytes": 48812
+  },
+  {
+    "id": "11",
+    "url": "https://dip6t338iqjb9.cloudfront.net/user_data/img/special/20221001_syueisya_bleach/007.jpg",
+    "original": "assets/rukia-originals/11.jpg",
+    "size": [
+      717,
+      832
+    ],
+    "sha256": "7e4cb5168f0e1c2bd348f61248dcaa66699a4bb140e25b7e446809bb9c1e7813",
+    "previewBytes": 45354
+  },
+  {
+    "id": "12",
+    "url": "https://dosbg3xlm0x1t.cloudfront.net/images/items/9784088732374/1200/9784088732374.jpg",
+    "original": "assets/rukia-originals/12.jpg",
+    "size": [
+      756,
+      1200
+    ],
+    "sha256": "eb738ee7a7f48fc167544ada2fd02308e97fe8efed2904a6457724e5126a4504",
+    "previewBytes": 30756
+  },
+  {
+    "id": "13",
+    "url": "https://stat.ameba.jp/user_images/20230111/06/gantzu-1109/59/cd/j/o0666102215228363086.jpg",
+    "original": "assets/rukia-originals/13.jpg",
+    "size": [
+      666,
+      1022
+    ],
+    "sha256": "f91790daadc01119489a92040037009c3e3ff5df6c8819a72306fbf601ad8a31",
+    "previewBytes": 34686
+  },
+  {
+    "id": "14",
+    "url": "https://i.pinimg.com/736x/46/31/df/4631dfc0037f404036698734ffa3d85a.jpg",
+    "original": "assets/rukia-originals/14.jpg",
+    "size": [
+      736,
+      1329
+    ],
+    "sha256": "d66ba9c2149e3132fa75041ab0e68cb87f6f9be710890e40e604b4c17fc49c26",
+    "previewBytes": 8568
+  },
+  {
+    "id": "15",
+    "url": "https://i.pinimg.com/736x/64/44/de/6444de6f19dd193c42a6b5737a655d2a.jpg",
+    "original": "assets/rukia-originals/15.jpg",
+    "size": [
+      736,
+      1064
+    ],
+    "sha256": "ab884fc29a8027f6b244c10c3cad9b2c852111d9a1ccd32b079e6011940d2246",
+    "previewBytes": 36584
+  },
+  {
+    "id": "16",
+    "url": "https://i.pinimg.com/474x/46/95/aa/4695aa6e35a9bc35683326d3a5d14083.jpg",
+    "original": "assets/rukia-originals/16.jpg",
+    "size": [
+      419,
+      926
+    ],
+    "sha256": "39b210d8296d0eca84eaced4f1a74f703a780505ebd44419beed65ee7280bbe5",
+    "previewBytes": 14314
+  },
+  {
+    "id": "17",
+    "url": "https://i.pinimg.com/736x/11/1a/44/111a4428fd3a3a807b702a9b18d93b6a.jpg",
+    "original": "assets/rukia-originals/17.jpg",
+    "size": [
+      564,
+      564
+    ],
+    "sha256": "6f58f7ce29db7e2d9429add4e561b56c1dfda3635ba4a2017666f514a5705860",
+    "previewBytes": 17106
+  },
+  {
+    "id": "18",
+    "url": "https://i.pinimg.com/originals/3a/e7/fb/3ae7fb0e554a7f6a3621e6371071c6eb.jpg",
+    "original": "assets/rukia-originals/18.jpg",
+    "size": [
+      564,
+      564
+    ],
+    "sha256": "8ea64502d17afcdc3b2fc391174bcdcf9358e4a9591aa19d485b8dbb664fddf9",
+    "previewBytes": 25704
+  },
+  {
+    "id": "19",
+    "url": "https://12dimension.wordpress.com/wp-content/uploads/2014/02/bleach_ch567_p012-e1391612661148.png?w=611",
+    "original": "assets/rukia-originals/19.png",
+    "size": [
+      610,
+      429
+    ],
+    "sha256": "c4882a4451a8a341b1271a9f4c72138211e3af3188fe8a050aef8160732ce59b",
+    "previewBytes": 16298
+  },
+  {
+    "id": "20",
+    "url": "https://i.pinimg.com/736x/38/9f/7c/389f7c1990d216aab80c9050fbf46c10.jpg",
+    "original": "assets/rukia-originals/20.jpg",
+    "size": [
+      736,
+      569
+    ],
+    "sha256": "1bd0cca4a7d6b5a8c0206b43d551d60c4d6538564042c798ee044047ef2b887d",
+    "previewBytes": 12678
+  },
+  {
+    "id": "21",
+    "url": "https://livedoor.blogimg.jp/ikesanfromfr/imgs/a/b/ab4a0776.jpg",
+    "original": "assets/rukia-originals/21.jpg",
+    "size": [
+      415,
+      459
+    ],
+    "sha256": "0b9057557a36f681fdc31c4d11310161721e53eabc4c52d29e424eea786ee606",
+    "previewBytes": 30610
+  }
+]

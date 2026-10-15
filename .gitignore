@@ -1,0 +1,9 @@
+work/
+release/
+outputs/
+archive/
+references/
+*.log
+.env
+.env.*
+node_modules/
