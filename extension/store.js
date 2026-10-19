@@ -83,6 +83,7 @@
     });
   }
   root.SkyStore = {
+    async cloud(type,command={}){if(!extension)throw new Error('云端功能只在已加载的 Chrome 扩展中可用');return send('cloud'+type,command);},
     async get() {
       return extension ? (await send('get')).state : (await localTask()).state;
     },

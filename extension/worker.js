@@ -1,9 +1,30 @@
 'use strict';
 importScripts('core.js');
+importScripts('cloud.js');
 
 const STORAGE_KEY = 'sky-home-v1';
 const RAW_KEY = `${STORAGE_KEY}-recovery-raw`;
 let queue = Promise.resolve();
+const transact=fn=>{const pending=queue.then(fn);queue=pending.catch(()=>{});return pending;};
+const cloud=SkyCloud.create({chrome,transaction:transact,readState:async()=>SkyCore.validateState((await chrome.storage.local.get(STORAGE_KEY))[STORAGE_KEY]??SkyCore.emptyState())});
+async function autoSync(){if((await cloud.status()).enabled)await cloud.sync().catch(()=>{});}
+async function cloudMessage(message){
+ const c=message.command||{};
+ if(message.type==='cloudStatus')return {ok:true,cloud:await cloud.status()};
+ if(message.type==='cloudConfigure'){const status=await cloud.configure(c);if(status.enabled)await chrome.alarms.create('sky-cloud-poll',{periodInMinutes:5});else await chrome.alarms.clear('sky-cloud-poll');return {ok:true,cloud:status};}
+ if(message.type==='cloudSync')return {ok:true,cloud:await cloud.sync(c)};
+ if(message.type==='cloudBackup')return {ok:true,cloud:await cloud.backup()};
+ if(message.type==='cloudDownload')return {ok:true,value:await cloud.download()};
+ if(message.type==='cloudBeforePull')return {ok:true,value:await cloud.getBeforePull()};
+ throw Error('不支持的云端操作');
+}
+chrome.alarms?.onAlarm.addListener(alarm=>{if(alarm.name==='sky-cloud-poll'||alarm.name==='sky-cloud-change')autoSync().catch(()=>{});});
+chrome.runtime.onStartup?.addListener(()=>{cloud.status().then(s=>{if(s.enabled)chrome.alarms.create('sky-cloud-poll',{periodInMinutes:5});});autoSync().catch(()=>{});});
+chrome.runtime.onInstalled?.addListener(()=>{chrome.storage.local.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'});cloud.status().then(s=>{if(s.enabled)chrome.alarms.create('sky-cloud-poll',{periodInMinutes:5});});});
+chrome.storage.onChanged.addListener((changes,area)=>{
+ if(area==='sync'&&changes[SkyCloud.KEY])autoSync().catch(()=>{});
+ if(area==='local'&&changes[STORAGE_KEY]){const c=changes[STORAGE_KEY];try{if(JSON.stringify(SkyCloud.daily(c.oldValue??SkyCore.emptyState()))!==JSON.stringify(SkyCloud.daily(c.newValue)))cloud.status().then(s=>{if(s.enabled)chrome.alarms.create('sky-cloud-change',{delayInMinutes:1});});}catch{/* Invalid local data is handled by the recovery screen. */}}
+});
 
 async function write(state) {
   try { await chrome.storage.local.set({ [STORAGE_KEY]: state }); }
@@ -50,8 +71,7 @@ async function handle(message) {
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   if (sender.id !== chrome.runtime.id || !message || message.channel !== STORAGE_KEY) return;
-  const pending = queue.then(() => handle(message));
-  queue = pending.catch(() => {});
+  const pending = typeof message.type==='string'&&message.type.startsWith('cloud')?cloudMessage(message):transact(() => handle(message));
   pending.then(respond, error => respond({ ok: false, error: error.message || '本机存储失败，请重试' }));
   return true;
 });

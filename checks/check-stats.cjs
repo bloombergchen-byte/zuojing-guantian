@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict'),{summarize}=require('../extension/stats.js');
+const row=(day,url,count)=>({day,url,name:url,lastAt:day+'T06:00:00.000Z',count});
+const rows=[row('2026-10-17','https://a.example/',5),row('2026-10-16','https://a.example/',2),row('2026-10-10','https://b.example/',3),row('2026-09-17','https://c.example/',9),row('2000-01-01','https://a.example/',50),row('2026-10-18','https://future.example/',4)];
+const before=JSON.stringify(rows),week=summarize(rows,'7','2026-10-17'),month=summarize(rows,'30','2026-10-17'),all=summarize(rows,'all','2026-10-17');
+assert.equal(week.total,7);assert.equal(week.unique,1);assert.equal(week.bins.length,7);assert.equal(week.ranking[0].count,7);assert.equal(week.ranking[0].lastAt,'2026-10-17T06:00:00.000Z');assert.equal(week.metrics.days30,10);assert.equal(week.metrics.total,73);
+assert.equal(month.total,10);assert.equal(month.start,'2026-09-18');assert.equal(month.bins.length,30);assert.equal(month.bins.reduce((n,b)=>n+b.count,0),10);
+assert.equal(all.total,73);assert.ok(all.bins.length<=45);assert.equal(all.bins.reduce((n,b)=>n+b.count,0),73);assert.equal(all.ranking[0].count,57);assert.equal(all.recent[0].url,'https://future.example/');assert.equal(JSON.stringify(rows),before);
+const empty=summarize([],'30','2026-10-17');assert.equal(empty.total,0);assert.equal(empty.ranking.length,0);assert.ok(empty.bins.every(b=>b.count===0));
+assert.equal(summarize([row('2024-02-29','https://a.example/',1)],'7','2024-03-01').bins.filter(b=>b.start==='2024-02-29')[0].count,1);
+console.log('PASS statistics: local-day 7/30/all bounds, leap day, URL aggregation, counts conserved in <=45 history bins, empty/future data and immutable input');
