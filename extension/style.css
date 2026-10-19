@@ -52,7 +52,7 @@
 @media(max-width:520px){#sky-edge-collage .op-controls{gap:8px 10px;}#sky-edge-collage .op-progress-label{order:3;flex-basis:70%;}#sky-edge-collage .op-time{order:4;}#sky-edge-collage .op-steps{margin-left:auto;}#sky-edge-collage .op-steps button{padding-left:5px;padding-right:5px;}#sky-edge-collage .op-paper-content{padding:15px 17px;}#sky-edge-collage .op-paper a{font-size:16px;}#sky-edge-collage .op-stage{min-height:0;}}
 @media(pointer:coarse){#sky-edge-collage button,#sky-edge-collage .op-paper a{min-height:44px;}#sky-edge-collage .op-paper ul{gap:0;}}
 @media(prefers-reduced-motion:reduce){#sky-edge-collage *{transition:none!important;}}
-@media(max-width:620px){#sky-edge-collage .op-letter{font-size:40px;}#sky-edge-collage .op-nav{right:24px;top:80px;gap:10px;}#sky-edge-collage .op-search-tabs{gap:12px;font-size:11px;}#sky-edge-collage .op-search input{font-size:19px;}#sky-edge-collage .op-search form{gap:4px;flex-wrap:wrap;}#sky-edge-collage .op-search input{flex-basis:100%;width:100%;}#sky-edge-collage .op-search select{margin-right:auto;}#sky-edge-collage .op-folio{padding:12px;}#sky-edge-collage .op-folio>img{height:320px;}}
+@media(max-width:620px){#sky-edge-collage .op-letter{font-size:40px;}#sky-edge-collage .op-search-tabs{gap:12px;font-size:11px;}#sky-edge-collage .op-search input{font-size:19px;}#sky-edge-collage .op-search form{gap:4px;flex-wrap:wrap;}#sky-edge-collage .op-search input{flex-basis:100%;width:100%;}#sky-edge-collage .op-search select{margin-right:auto;}#sky-edge-collage .op-folio{padding:12px;}#sky-edge-collage .op-folio>img{height:320px;}}
 #sky-edge-collage{--edge-presence:.88;}
 #sky-edge-collage .op-edge-gallery{position:absolute;inset:0;z-index:1;pointer-events:none;}
 #sky-edge-collage .op-edge-item{position:absolute;display:block;margin:0;padding:0;border:0;background:transparent;pointer-events:auto;isolation:isolate;transform-origin:50% 50%;}
@@ -122,7 +122,7 @@ button{cursor:pointer;}
 #sky-edge-collage .op-folio{width:min(760px,calc(100% - 32px));}
 #sky-edge-collage .op-folio>img{height:min(66dvh,650px);}
 @media(max-width:919px){#sky-edge-collage .op-nav{max-width:calc(100% - 200px);font-size:13px;gap:0;}}
-@media(max-width:619px){#sky-edge-collage .op-nav{left:50px;right:50px!important;max-width:none;top:182px!important;justify-content:flex-start;font-size:12px;}#sky-edge-collage .sheet-dialog{padding:18px;}#sky-edge-collage .op-search-tabs{gap:12px;}}
+@media(max-width:619px){#sky-edge-collage .sheet-dialog{padding:18px;}#sky-edge-collage .op-search-tabs{gap:12px;}}
 
 /* Independent editing paper, adapted from the approved organize/motion prototypes. */
 #sky-edge-collage .cloud-sheet{width:min(760px,calc(100% - 32px));}

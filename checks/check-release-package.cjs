@@ -30,7 +30,7 @@ vm.runInContext(extract(motion,'centerFrames'),context);
 vm.runInContext(motion.slice(motion.indexOf('function openingFrames('),motion.indexOf('function layoutEdges(')),context);
 vm.runInContext(extract(motion,'searchFrames'),context);
 for(const width of [300,320,619,620,919,920,1440,1920]){
- const f=context.openingFrames(width),edges=context.edgeFrames(width,f.height,f.margin);assert.equal(edges.length,21);assert.equal(new Set(edges.map(r=>r.id)).size,21);
+ const f=context.openingFrames(width),edges=context.edgeFrames(width,f.height);assert.equal(edges.length,21);assert.equal(new Set(edges.map(r=>r.id)).size,21);assert.equal(f.titleY,124);assert.equal(f.titleSize,40);assert.equal(f.titleAdvance,41.6);assert.equal(f.navY,width>=920?124:170);assert.equal(f.navMaxWidth,width-f.navX-f.navRight);if(width>=920){assert.ok(f.navX>=f.titleX+f.titleAdvance*4+16);assert.equal(f.navRight,184);}else{assert.equal(f.navX,width<620?56:176);assert.equal(f.navRight,width<620?56:176);}assert.ok(f.startTitleSize>0&&f.startTitleSize<=120);assert.ok(f.start[0].y>=200,"storyboard begins below the large title");assert.deepEqual(["top","left","right","bottom"].map(side=>edges.filter(r=>r.side===side).length),[4,6,6,5]);for(const r of edges)assert.ok(r.x>=0&&r.x+r.w<=width&&r.y>=0&&r.y+r.h<=f.height,"album frame stays on stage: "+r.id);
  for(const b of f.end){assert.ok([b.x,b.y,b.w,b.h,b.r].every(Number.isFinite));assert.ok(b.x>=0&&b.x+b.w<=width+.1&&b.h>=250&&b.y+b.h<f.height);}
  assert.ok(f.end[2].h>=1700);
  if(width>=920){for(const [a,b]of [[0,3],[1,2],[4,6]])assert.ok(Math.abs(f.end[a].x+f.end[b].x+f.end[a].w-width)<=1);}
@@ -38,7 +38,7 @@ for(const width of [300,320,619,620,919,920,1440,1920]){
  const album=context.albumFrames(f.start);assert.equal(new Set(album.map(r=>r.id)).size,21);
 }
 assert.match(app,/file\.size>core\.MAX_IMPORT_BYTES/);assert.match(app,/store\.recover\(job\.value,true\)/);assert.match(app,/core\.previewImport\(job\.value,job\.recovery\?core\.emptyState\(\):state/);
-assert.match(motion,/scaleX:\[1,frames.titleScale\],scaleY:\[1,frames.titleScale\]/);assert.ok(!/op-controls|op-composition|op-play|开场进度/.test(html));
+assert.match(motion,/startTitleSize=Math\.min\(120,/);assert.match(motion,/frames\.titleX\+i\*frames\.titleAdvance/);assert.match(motion,/duration:1250,ease:\x27inOut\(4\)\x27/);assert.ok(!/op-controls|op-composition|op-play|开场进度/.test(html));
 for(const size of [16,32,48,128]){const png=fs.readFileSync(path.join(extension,'icons',size+'.png'));assert.equal(png.readUInt32BE(16),size);assert.equal(png.readUInt32BE(20),size);}
 async function checkDraftUI(){
  const nodes=new Map(),writes=[],listeners={},data={name:'first',url:'https://example.test/',group:'tools'};
