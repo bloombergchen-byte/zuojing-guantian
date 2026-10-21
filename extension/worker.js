@@ -5,6 +5,7 @@ importScripts('cloud.js');
 const STORAGE_KEY = 'sky-home-v1';
 const RAW_KEY = `${STORAGE_KEY}-recovery-raw`;
 let queue = Promise.resolve();
+let startupOpeningReady = Promise.resolve();
 const transact=fn=>{const pending=queue.then(fn);queue=pending.catch(()=>{});return pending;};
 const cloud=SkyCloud.create({chrome,transaction:transact,readState:async()=>SkyCore.validateState((await chrome.storage.local.get(STORAGE_KEY))[STORAGE_KEY]??SkyCore.emptyState())});
 async function autoSync(){if((await cloud.status()).enabled)await cloud.sync().catch(()=>{});}
@@ -19,13 +20,32 @@ async function cloudMessage(message){
  throw Error('不支持的云端操作');
 }
 chrome.alarms?.onAlarm.addListener(alarm=>{if(alarm.name==='sky-cloud-poll'||alarm.name==='sky-cloud-change')autoSync().catch(()=>{});});
-chrome.runtime.onStartup?.addListener(()=>{cloud.status().then(s=>{if(s.enabled)chrome.alarms.create('sky-cloud-poll',{periodInMinutes:5});});autoSync().catch(()=>{});});
+chrome.runtime.onStartup?.addListener(()=>{prepareStartupOpening();cloud.status().then(s=>{if(s.enabled)chrome.alarms.create('sky-cloud-poll',{periodInMinutes:5});});autoSync().catch(()=>{});});
 chrome.runtime.onInstalled?.addListener(()=>{chrome.storage.local.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'});cloud.status().then(s=>{if(s.enabled)chrome.alarms.create('sky-cloud-poll',{periodInMinutes:5});});});
 chrome.storage.onChanged.addListener((changes,area)=>{
  if(area==='sync'&&changes[SkyCloud.KEY])autoSync().catch(()=>{});
  if(area==='local'&&changes[STORAGE_KEY]){const c=changes[STORAGE_KEY];try{if(JSON.stringify(SkyCloud.daily(c.oldValue??SkyCore.emptyState()))!==JSON.stringify(SkyCloud.daily(c.newValue)))cloud.status().then(s=>{if(s.enabled)chrome.alarms.create('sky-cloud-change',{delayInMinutes:1});});}catch{/* Invalid local data is handled by the recovery screen. */}}
 });
 
+// storage.session survives worker suspension and resets when Chrome exits.
+function prepareStartupOpening() {
+  const session = chrome.storage.session;
+  startupOpeningReady = session ? session.set({ startupOpeningPending: true }).catch(() => {}) : Promise.resolve();
+}
+
+async function claimStartupOpening() {
+  await startupOpeningReady;
+  const session = chrome.storage.session;
+  if (!session) return false;
+  try {
+    const { startupOpeningPending } = await session.get('startupOpeningPending');
+    if (startupOpeningPending !== true) return false;
+    await session.set({ startupOpeningPending: false });
+    return true;
+  } catch {
+    return false;
+  }
+}
 async function write(state) {
   try { await chrome.storage.local.set({ [STORAGE_KEY]: state }); }
   catch (error) { throw new Error(`本机存储写入失败，原数据已保留，请重试：${error.message || '存储空间或权限错误'}`); }
@@ -64,7 +84,10 @@ async function handle(message) {
   }
   if (message.type === 'get') return { ok: true, state };
   if (message.type !== 'dispatch') throw new Error('不支持的存储请求');
-  const next = SkyCore.apply(state, message.command);
+  const command = message.command?.type === 'claimOpening'
+    ? { ...message.command, browserStartup: await claimStartupOpening() }
+    : message.command;
+  const next = SkyCore.apply(state, command);
   await write(next.state);
   return { ok: true, ...next };
 }

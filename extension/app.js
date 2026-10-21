@@ -192,7 +192,7 @@
  });
  $('#import-mode').addEventListener('change',renderImport);$('#keep-rollback').addEventListener('change',renderImport);$('#confirm-import').addEventListener('click',acceptImport);
  $('#cancel-import').addEventListener('click',()=>{if(!importBusy)close($('#importer'));});$('#import-export').addEventListener('click',exportState);
- $('#importer').addEventListener('close',()=>{importJob=null;if(initialPreview){initialPreview=false;startDailyOpening();}else if(!openingStarted&&!loading)startDailyOpening();});
+ $('#importer').addEventListener('close',()=>{importJob=null;if(initialPreview){initialPreview=false;startBrowserOpening();}else if(!openingStarted&&!loading)startBrowserOpening();});
  function seedPreview(){const rows=[...SkySeed.bookmarks,...SkySeed.shortcuts];startImport(null,SkySeed.bookmarks.length+' 条已保存书签 ＋ '+SkySeed.shortcuts.length+' 个吉他入口',rows);}
  $('#chrome-import').addEventListener('click',async()=>{
   if(!globalThis.chrome?.runtime?.id||!chrome.permissions?.request){notice('读取当前 Chrome 书签需要先安装此扩展；也可从 JSON 导入。');return;}
@@ -235,7 +235,7 @@
   dialog.addEventListener('cancel',e=>{if(busy())e.preventDefault();});
  });
  function ensureMotion(){if(motion)return;renderPapers();motion=SkyMotion.init(papers,{engine:value=>command({type:'settings',settings:{engine:value}}).catch(fail),error:fail});motion.settings(state.settings);}
- async function startDailyOpening(){
+ async function startBrowserOpening(){
   if(openingStarted||loading)return;openingStarted=true;motion?.prepareOpening();
   try{const response=await command({type:'claimOpening',day:day()});motion.playOpening(response.result.playOpening);}catch(error){fail(error);motion?.playOpening(false);}
  }
@@ -248,7 +248,7 @@
     // Default visual setting for a new install; no website is imported before confirmation.
     if(state.revision===0)await command({type:'settings',settings:{artPresence:88}});
     initialPreview=true;seedPreview();
-   }else startDailyOpening();
+   }else startBrowserOpening();
   }catch(error){loading=true;$('#load-error').hidden=false;$('#load-message').textContent=error.message;notice('数据读取失败，请保全原始记录后重试或恢复。',true);}
  }
  $('#retry-load').addEventListener('click',load);

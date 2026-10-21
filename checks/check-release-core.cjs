@@ -178,20 +178,20 @@ function checkStats() {
   assert.deepEqual(copy(restored.stats), copy(state.stats));
   assert.equal(api.apply(state, { type: 'resetStats' }).state.stats.length, 0);
   let opening = api.apply(state, { type: 'claimOpening', day: '2026-10-16' });
+  assert.equal(opening.result.playOpening, false, 'opening requires a browser startup claim');
+  opening = api.apply(opening.state, { type: 'claimOpening', day: '2026-10-16', browserStartup: true });
   assert.equal(opening.result.playOpening, true);
-  opening = api.apply(opening.state, { type: 'claimOpening', day: '2026-10-16' });
-  assert.equal(opening.result.playOpening, false);
   opening = api.apply(opening.state, { type: 'settings', settings: { openingEnabled: false } });
-  opening = api.apply(opening.state, { type: 'claimOpening', day: '2026-10-17' });
+  opening = api.apply(opening.state, { type: 'claimOpening', day: '2026-10-17', browserStartup: true });
   assert.equal(opening.result.playOpening, false); assert.equal(opening.state.lastVisitDay, '2026-10-17');
-  console.log('PASS stats: 550 clicks retained, local-day aggregation, full-history roundtrip, reset and daily opening');
+  console.log('PASS stats: 550 clicks retained, local-day aggregation, full-history roundtrip, reset and startup-gated opening');
 }
 
 async function checkWorker() {
-  let stored, rawArchive, listener, failNext = false, failMain = false, writes = 0;
+  let stored, rawArchive, listener, startupListener, sessionData = {}, failNext = false, failMain = false, writes = 0;
   const changed = new Set();
   const chrome = {
-    runtime: { id: 'test-extension', onMessage: { addListener(fn) { listener = fn; } } },
+    runtime: { id: 'test-extension', onMessage: { addListener(fn) { listener = fn; } }, onStartup: { addListener(fn) { startupListener = fn; } } },
     storage: {
       local: {
         async get(key) { await new Promise(resolve => setImmediate(resolve)); const value = key === RAW_KEY ? rawArchive : stored; return value === undefined ? {} : { [key]: copy(value) }; },
@@ -203,6 +203,10 @@ async function checkWorker() {
           stored = copy(value[KEY]); writes++;
           for (const fn of changed) fn({ [KEY]: { newValue: copy(stored) } }, 'local');
         }
+      },
+      session: {
+        async get(key) { return sessionData[key] === undefined ? {} : { [key]: sessionData[key] }; },
+        async set(value) { Object.assign(sessionData, copy(value)); }
       },
       onChanged: { addListener(fn) { changed.add(fn); } }
     }
@@ -226,8 +230,22 @@ async function checkWorker() {
   assert.equal((await request('dispatch', click)).ok, false);
   assert.equal(JSON.stringify(stored), beforeFailure);
   assert.equal((await request('dispatch', click)).ok, true); assert.equal(stored.stats[0].count, 3);
-  const claim = await Promise.all([request('dispatch', { type: 'claimOpening', day: '2026-10-15' }), request('dispatch', { type: 'claimOpening', day: '2026-10-15' })]);
-  assert.deepEqual(claim.map(item => item.result.playOpening), [true, false]);
+  const openingCommand = { type: 'claimOpening', day: '2026-10-15' };
+  const beforeRestart = await Promise.all([request('dispatch', openingCommand), request('dispatch', openingCommand)]);
+  assert.deepEqual(beforeRestart.map(item => item.result.playOpening), [false, false], 'new tabs do not play until a browser startup');
+  startupListener();
+  vm.runInContext("startupOpeningReady = Promise.resolve()", context); // Simulate service-worker suspension; session data must survive.
+  const afterRestart = await Promise.all([request('dispatch', openingCommand), request('dispatch', openingCommand)]);
+  assert.deepEqual(afterRestart.map(item => item.result.playOpening), [true, false], 'only one tab claims opening after restart, even on the same day');
+  assert.equal((await request('dispatch', openingCommand)).result.playOpening, false, 'later new tabs skip the opening');
+  sessionData = {};
+  startupListener();
+  assert.equal((await request('dispatch', openingCommand)).result.playOpening, true, 'a later browser restart enables one new playback');
+  await request('dispatch', { type: 'settings', settings: { openingEnabled: false } });
+  sessionData = {};
+  startupListener();
+  assert.equal((await request('dispatch', openingCommand)).result.playOpening, false, 'the existing playback setting still applies');
+  assert.equal((await request('dispatch', openingCommand)).result.playOpening, false, 'disabled playback is consumed for the whole browser session');
   const good = copy(stored);
   stored.sites[0].url = 'javascript:alert(1)';
   const corrupt = JSON.stringify(stored);

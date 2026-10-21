@@ -271,8 +271,8 @@
       case 'resetStats': state.stats = []; break;
       case 'claimOpening': {
         day(command.day);
-        result.playOpening = state.lastVisitDay !== command.day && state.settings.openingEnabled;
-        state.lastVisitDay = command.day;
+        result.playOpening = command.browserStartup === true && state.settings.openingEnabled;
+        if (command.browserStartup === true) state.lastVisitDay = command.day;
         break;
       }
       case 'import': {
