@@ -5,9 +5,11 @@
  "description": "七分类纸页新标签主页，支持可选Chrome同步和GitHub私有备份。",
  "chrome_url_overrides": {"newtab":"index.html"},
  "background": {"service_worker":"worker.js"},
- "permissions": ["storage","alarms"],
+ "permissions": ["storage","alarms","activeTab"],
  "optional_permissions": ["bookmarks"],
  "optional_host_permissions": ["https://api.github.com/*"],
  "icons": {"16":"icons/16.png","32":"icons/32.png","48":"icons/48.png","128":"icons/128.png"},
+ "action": {"default_title":"加入坐井观天","default_popup":"popup.html","default_icon":{"16":"icons/16.png","32":"icons/32.png","48":"icons/48.png"}},
+ "commands": {"_execute_action":{"suggested_key":{"default":"Ctrl+Shift+Y","mac":"Command+Shift+Y"},"description":"选择纸页并加入当前网页"}},
  "content_security_policy": {"extension_pages":"script-src 'self'; object-src 'none'; base-uri 'self'; connect-src https://api.github.com"}
 }

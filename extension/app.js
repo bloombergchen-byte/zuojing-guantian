@@ -47,7 +47,7 @@
     let item;
     if(organizing){item=button('',()=>openEditor(site));item.append(el('span',site.name),el('span','编辑','site-edit-cue'));item.className='site-edit';item.setAttribute('aria-label','编辑 '+site.name);}
     else{
-     item=el('a',site.name);item.href=site.url;item.target='_blank';item.rel='noopener noreferrer';
+     item=el('a',site.name);item.href=site.url;item.target='_self';
      // Native anchors retain Ctrl/Cmd and middle-button behavior. Each gesture has one event.
      item.addEventListener('click',event=>{if(event.button===0)recordClick(site.id);});
      item.addEventListener('auxclick',event=>{if(event.button===1)recordClick(site.id);});
@@ -71,6 +71,15 @@
   if($('#trash').open)renderTrash();if($('#statistics').open)renderStats();
  }
  async function command(value){const response=await store.dispatch(value);receive(response.state);return response;}
+ const legacySiteNames=new Map(); // Personal title migrations stay on the local device.
+ async function cleanLegacySiteNames(){
+  for(const site of state.sites.slice()){
+   const name=legacySiteNames.get(site.name);
+   if(!name||state.draft?.id===site.id)continue;
+   try{await command({type:'saveSite',site:{...site,name}});}catch(error){return error.message||'请稍后重试';}
+  }
+  return '';
+ }
  function recordClick(id){command({type:'click',id}).catch(error=>notice('网站仍可打开，但此次统计未保存：'+error.message,true));}
  function currentDraft(){const f=forms.editor.elements;return {...(editingId?{id:editingId}:{}),name:f.name.value,url:f.url.value,group:f.group.value};}
  function queueDraft(){
@@ -241,9 +250,9 @@
  }
  async function load(){
   try{
-   const next=await store.get();receive(next);loading=false;$('#load-error').hidden=true;ensureMotion();
+   const next=await store.get();receive(next);const cleanupError=await cleanLegacySiteNames();loading=false;$('#load-error').hidden=true;ensureMotion();
    if(!unsubscribe)unsubscribe=store.subscribe(receive);
-   notice('');
+   notice(cleanupError?'网站命名整理未完成：'+cleanupError:'',Boolean(cleanupError));
    if(!state.sites.length&&!state.trash.length&&!state.lastVisitDay){
     // Default visual setting for a new install; no website is imported before confirmation.
     if(state.revision===0)await command({type:'settings',settings:{artPresence:88}});
