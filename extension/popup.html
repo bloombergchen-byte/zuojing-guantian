@@ -1,14 +1,19 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>加入坐井观天</title><link rel="stylesheet" href="popup.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>加入坐井观天</title><link rel="stylesheet" href="action-picker.css"><link rel="stylesheet" href="popup.css"></head>
 <body>
 <main>
  <header class="op-heading" aria-label="坐井观天"><span>坐</span><span>井</span><span>观</span><span>天</span></header>
- <section class="op-source-sheet" aria-label="当前网页"><p id="page-title">正在读取当前网页…</p><span id="page-host"></span></section>
- <h1>选择纸页</h1>
- <div id="groups" class="op-paper-spread" aria-label="选择网站分类"></div>
+ <section class="op-source-sheet" aria-labelledby="page-heading"><div id="source-icon" aria-hidden="true"></div><div class="op-source-meta"><h1 id="page-heading">正在读取当前网页…</h1><span id="page-host"></span></div></section>
+ <section id="duplicates" aria-labelledby="duplicates-heading" hidden><h2 id="duplicates-heading">已收藏的页面</h2><p>这个域名已有多个收藏，选择一项编辑。</p><div id="duplicates-list" class="op-duplicates"></div></section>
+ <form id="site-form" hidden>
+  <label class="op-label" for="site-name">名称</label><input id="site-name" name="name" maxlength="120" autocomplete="off" required><p id="popup-draft-note" class="op-draft-note" role="status"></p>
+  <fieldset class="op-group-field"><legend>分类</legend><div id="groups" class="op-paper-spread" aria-label="选择网站分类"></div></fieldset>
+  <section class="op-actions-section" aria-labelledby="actions-heading"><h2 id="actions-heading">露琪亚动作</h2><div id="action-picker"></div></section>
+  <div class="op-controls"><button id="save-site" class="op-save" type="submit">确认添加</button><button id="back-duplicates" type="button" hidden>返回已有页面</button></div>
+ </form>
  <p id="status" class="op-status" role="status" aria-live="polite"></p>
 </main>
-<script src="core.js"></script><script src="popup.js"></script>
+<script src="core.js"></script><script src="site-personal.js"></script><script src="site-icons.js"></script><script src="action-library.js"></script><script src="popup.js"></script>
 </body>
 </html>

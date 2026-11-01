@@ -2,15 +2,15 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),cp=require('node:child_process');
 const root=path.resolve(__dirname,'..'),extension=path.join(root,'extension'),read=name=>fs.readFileSync(path.join(extension,name),'utf8');
 const manifest=JSON.parse(read('manifest.json')),html=read('index.html'),app=read('app.js'),motion=read('motion.js');
-assert.equal(manifest.manifest_version,3);assert.equal(manifest.name,'坐井观天');assert.equal(manifest.version,'1.1.1');
+assert.equal(manifest.manifest_version,3);assert.equal(manifest.name,'坐井观天');assert.equal(manifest.version,'1.4.2');
 assert.equal(manifest.chrome_url_overrides.newtab,'index.html');assert.equal(manifest.background.service_worker,'worker.js');
-assert.deepEqual(manifest.permissions,['storage','alarms','activeTab']);
-assert.equal(manifest.action.default_popup,'popup.html');assert.ok(fs.existsSync(path.join(extension,'popup.html')));assert.ok(fs.existsSync(path.join(extension,'popup.css')));assert.deepEqual(manifest.optional_permissions,['bookmarks']);assert.deepEqual(manifest.optional_host_permissions,['https://api.github.com/*']);
-assert.ok(!manifest.host_permissions);assert.match(manifest.content_security_policy.extension_pages,/script-src 'self'/);assert.match(manifest.content_security_policy.extension_pages,/object-src 'none'/);assert.match(manifest.content_security_policy.extension_pages,/connect-src https:\/\/api\.github\.com/);
+assert.deepEqual(manifest.permissions,['storage','alarms','activeTab','favicon']);
+assert.equal(manifest.action.default_popup,'popup.html');assert.ok(fs.existsSync(path.join(extension,'popup.html')));assert.ok(fs.existsSync(path.join(extension,'popup.css')));assert.deepEqual(manifest.optional_permissions,['bookmarks']);assert.deepEqual(manifest.optional_host_permissions,['https://api.github.com/*','http://*/*','https://*/*']);
+assert.ok(!manifest.host_permissions);assert.match(manifest.content_security_policy.extension_pages,/script-src 'self'/);assert.match(manifest.content_security_policy.extension_pages,/object-src 'none'/);assert.match(manifest.content_security_policy.extension_pages,/connect-src 'self' https: http:/);
 assert.ok(!/<script\b(?![^>]*\bsrc=)[^>]*>/i.test(html));assert.ok(!/\son[a-z]+\s*=/i.test(html));assert.ok(!/javascript:|data:image|https?:\/\//i.test(html.replace(/placeholder="https:\/\/"/g,'')));
 const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-assert.deepEqual(scripts,['vendor/anime-4.5.0.umd.min.js','core.js','store.js','seed.js','motion.js','stats.js','app.js']);
-for(const resource of [...scripts,'cloud.js','style.css',manifest.background.service_worker,...Object.values(manifest.icons)])assert.ok(fs.existsSync(path.join(extension,resource)),resource);
+assert.deepEqual(scripts,['vendor/anime-4.5.0.umd.min.js','core.js','store.js','seed.js','motion.js','stats.js','site-personal.js','site-icons.js','action-library.js','app.js']);
+for(const resource of [...scripts,'cloud.js','style.css','action-picker.css',manifest.background.service_worker,...Object.values(manifest.icons)])assert.ok(fs.existsSync(path.join(extension,resource)),resource);
 for(const name of [...scripts,'worker.js','cloud.js','popup.js']){const result=cp.spawnSync(process.execPath,['--check',path.join(extension,name)],{encoding:'utf8'});assert.equal(result.status,0,result.stderr);}
 for(const script of [app,motion])assert.ok(!/\.innerHTML\s*=|insertAdjacentHTML|\beval\s*\(|new Function\s*\(|window\.openai|\bTweak\b/.test(script));
 const records=JSON.parse(read('assets/sources.json'));assert.equal(records.length,21);
@@ -44,7 +44,7 @@ for(const size of [16,32,48,128]){const png=fs.readFileSync(path.join(extension,
 async function checkDraftUI(){
  const nodes=new Map(),writes=[],listeners={},data={name:'first',url:'https://example.test/',group:'tools'};
  let first=true,release,closed=false,failDraft=false;
- const draftContext=vm.createContext({Promise,editorBusy:false,draftVersion:0,persistedDraftVersion:0,draftQueue:Promise.resolve(),editingId:null,
+ const draftContext=vm.createContext({Promise,editorBusy:false,draftVersion:0,persistedDraftVersion:0,draftQueue:Promise.resolve(),editingId:null,editorSavedSite:null,editorDraftSnapshot:null,
   $:selector=>{if(!nodes.has(selector))nodes.set(selector,{});return nodes.get(selector);},
   currentDraft:()=>({...data}),editorLock:busy=>draftContext.editorBusy=busy,
   forms:{editor:{addEventListener:(name,fn)=>listeners[name]=fn}},close:()=>{closed=true;},paperFeedback:()=>{},notice:()=>{},
@@ -52,7 +52,7 @@ async function checkDraftUI(){
    if(first){first=false;await new Promise(resolve=>release=resolve);}
    writes.push(JSON.parse(JSON.stringify(value)));
    if(failDraft&&value.type==='draft'&&value.draft){failDraft=false;throw Error('mock storage failure');}
-   return {result:{site:{id:'saved-id'}}};
+   return {state:{draft:value.draft},result:{site:{id:'saved-id'}}};
   }
  });
  vm.runInContext(extract(app,'queueDraft'),draftContext);

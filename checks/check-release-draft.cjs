@@ -17,7 +17,7 @@ async function interleave(type,other,{form=own,failure=false}={}){
  let stored=base(),closed=false,action,release,arrive;
  const nodes=new Map(),writes=[],listeners={};
  const arrived=new Promise(resolve=>arrive=resolve),gate=new Promise(resolve=>release=resolve);
- const c=vm.createContext({Promise,editorBusy:false,draftVersion:0,persistedDraftVersion:0,draftQueue:Promise.resolve(),editingId:form.id||null,
+ const c=vm.createContext({Promise,editorBusy:false,draftVersion:0,persistedDraftVersion:0,draftQueue:Promise.resolve(),editingId:form.id||null,editorSavedSite:null,editorDraftSnapshot:null,
   $:selector=>{if(!nodes.has(selector))nodes.set(selector,{addEventListener:(name,fn)=>listeners[selector+':'+name]=fn});return nodes.get(selector);},
   currentDraft:()=>copy(form),editorLock:busy=>c.editorBusy=busy,
   forms:{editor:{addEventListener:(name,fn)=>listeners[name]=fn}},close:()=>closed=true,paperFeedback(){},notice(){},confirm:(_,fn)=>action=fn,

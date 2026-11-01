@@ -4,7 +4,7 @@ const {chromium}=require('playwright'),root=path.resolve(__dirname,'..'),out=pat
 const core=require('../extension/core.js');let initial=core.emptyState();
 for(let i=0;i<70;i++)initial=core.apply(initial,{type:'saveSite',site:{name:'测试网站 '+i,url:'https://site'+i+'.example/',group:core.GROUPS[i%7].id}}).state;
 const d=new Date();initial.lastVisitDay=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp'};
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'};
 const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return;}fs.readFile(file,(e,b)=>{if(e){res.writeHead(404).end();return;}res.writeHead(200,{'Content-Type':(mime[path.extname(file)]||'text/plain')+'; charset=utf-8'}).end(b);});});
 async function checkSameTabNavigation(browser,initial,homeUrl){
  const context=await browser.newContext({viewport:{width:1440,height:900}});

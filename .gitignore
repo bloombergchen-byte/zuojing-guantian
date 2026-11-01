@@ -3,6 +3,7 @@ release/
 outputs/
 archive/
 references/
+extension/assets/site-icons/personal/
 *.log
 .env
 .env.*

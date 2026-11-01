@@ -4,7 +4,7 @@
   const RAW_KEY = `${KEY}-recovery-raw`;
   const extension = Boolean(root.chrome?.runtime?.id && root.chrome.runtime.sendMessage);
   const listeners = new Set();
-  let queue = Promise.resolve(), lastNotification, lastRevision = -1;
+  let queue = Promise.resolve(), lastNotification, lastRevision = -1, compatible = false, handshake;
   function notify(state) {
     if (state.revision < lastRevision) return;
     const signature = JSON.stringify(state);
@@ -16,6 +16,13 @@
     }
   }
   async function send(type, command) {
+    if (!compatible) {
+      handshake ||= root.chrome.runtime.sendMessage({ channel: KEY, type: 'handshake' }).then(response => {
+        if (!response?.ok || response.protocol !== 1) throw new Error('扩展后台尚未更新，请在 Chrome 扩展程序页重新加载“坐井观天”。');
+        compatible = true;
+      }).catch(() => { handshake = null; const error = new Error('扩展后台尚未更新，请在 Chrome 扩展程序页重新加载“坐井观天”。'); error.code = 'STALE_WORKER'; throw error; });
+      await handshake;
+    }
     const response = await root.chrome.runtime.sendMessage({ channel: KEY, type, command });
     if (!response?.ok) throw new Error(response?.error || '扩展存储没有响应，请重试');
     if (response.state) response.state = core.validateState(response.state);

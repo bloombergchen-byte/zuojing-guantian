@@ -36,6 +36,56 @@
     if (url.href.length > 4096) fail('网址不能超过4096字');
     return url.href;
   }
+  function iconBinding(value) {
+    const url = new URL(normalizeURL(value));
+    return url.origin + url.pathname;
+  }
+  function iconAction(value) {
+    if (typeof value !== 'string' || !/^[a-z0-9_-]{1,100}\.(?:png|webp)$/i.test(value)) fail('角色动作标识不正确');
+    return value;
+  }
+  function iconChoices(value) {
+    const result = {};
+    if (value === undefined) return result;
+    object(value, '角色动作选择');
+    const entries = Object.entries(value);
+    if (entries.length > 5000) fail('角色动作选择不能超过5000项');
+    for (const [key, raw] of entries) {
+      text(key, '网站ID', 120);
+      object(raw, '角色动作选择');
+      const binding = text(raw.binding, '角色动作网址', 4096);
+      if (iconBinding(binding) !== binding) fail('角色动作网址格式不正确');
+      Object.defineProperty(result, key, { value: { action: iconAction(raw.action), binding }, enumerable: true, writable: true, configurable: true });
+    }
+    return result;
+  }
+  function iconActionFor(state, site) {
+    const choice = state?.localIconChoices && Object.prototype.hasOwnProperty.call(state.localIconChoices, site?.id) ? state.localIconChoices[site.id] : null;
+    try { return choice && choice.binding === iconBinding(site.url) ? iconAction(choice.action) : null; }
+    catch { return null; }
+  }
+  function popupDrafts(value) {
+    const result = {};
+    if (value === undefined) return result;
+    object(value, '快捷添加草稿');
+    const entries = Object.entries(value);
+    if (entries.length > 5000) fail('快捷添加草稿不能超过5000项');
+    for (const [key, raw] of entries) {
+      text(key, '网站ID', 120);
+      const item = draft(raw);
+      if (!item || item.id !== key) fail('快捷添加草稿的网站ID不正确');
+      Object.defineProperty(result, key, { value: item, enumerable: true, writable: true, configurable: true });
+    }
+    return result;
+  }
+  function setIconChoice(state, id, action, url) {
+    Object.defineProperty(state.localIconChoices, id, { value: { action: iconAction(action), binding: iconBinding(url) }, enumerable: true, writable: true, configurable: true });
+  }
+  // Remote backups never include local-only choices or popup drafts, including recovery snapshots.
+  function withoutLocalUIState(state) {
+    const { localIconChoices, popupDrafts, recoveryBackup, ...rest } = state;
+    return { ...rest, recoveryBackup: recoveryBackup ? withoutLocalUIState(recoveryBackup) : null };
+  }
   function day(value, label = '日期', blank = false) {
     if (blank && value === '') return '';
     if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) fail(`${label}格式不正确`);
@@ -53,7 +103,7 @@
   function emptyState() {
     return { schemaVersion: 1, revision: 0, sites: [], trash: [], draft: null,
       settings: { engine: 'google', artPresence: 82, openingEnabled: true },
-      stats: [], lastVisitDay: '', recoveryBackup: null };
+      stats: [], lastVisitDay: '', recoveryBackup: null, localIconChoices: {}, popupDrafts: {} };
   }
   function site(value) {
     object(value, '网站');
@@ -100,7 +150,7 @@
       return item;
     });
     if (nested && value.recoveryBackup != null) fail('回退备份不能嵌套');
-    const result = { schemaVersion: 1, revision: value.revision, sites, trash, draft: draft(value.draft), settings: settings(value.settings), stats, lastVisitDay: day(value.lastVisitDay, '上次访问日期', true), recoveryBackup: null };
+    const result = { schemaVersion: 1, revision: value.revision, sites, trash, draft: draft(value.draft), settings: settings(value.settings), stats, lastVisitDay: day(value.lastVisitDay, '上次访问日期', true), recoveryBackup: null, localIconChoices: iconChoices(value.localIconChoices), popupDrafts: popupDrafts(value.popupDrafts) };
     if (value.recoveryBackup != null) result.recoveryBackup = validateState(value.recoveryBackup, true);
     if (!nested && stateBytes(result) > MAX_STATE_BYTES) fail('完整数据超过32MiB安全边界，原数据不变；请先导出保全后再整理');
     return result;
@@ -173,7 +223,7 @@
     if (options.keepRollback !== undefined && typeof options.keepRollback !== 'boolean') fail('保留回退选项必须是布尔值');
     importSize(value);
     const old = validateState(current);
-    let incoming, duplicates = 0;
+    let incoming, duplicates = 0, incomingHasIconChoices = false, incomingHasPopupDrafts = false;
     if (Array.isArray(value)) {
       incoming = emptyState();
       const urls = new Set();
@@ -191,20 +241,41 @@
       object(value, '备份');
       if (value.app !== '坐井观天' || value.schemaVersion !== 1) fail('不是受支持的坐井观天备份');
       time(value.exportedAt, '导出时间');
+      object(value.state, '备份状态');
+      incomingHasIconChoices = Object.prototype.hasOwnProperty.call(value.state, 'localIconChoices');
+      incomingHasPopupDrafts = Object.prototype.hasOwnProperty.call(value.state, 'popupDrafts');
       incoming = validateState(value.state);
     }
     let state, rollbackAvailable = null, warning = '';
-    if (mode === 'replace') state = withoutRecovery(incoming);
+    if (mode === 'replace') {
+      state = withoutRecovery(incoming);
+      // Old and remote backups do not carry local choices; preserve them on this device.
+      if (!incomingHasIconChoices) state.localIconChoices = iconChoices(old.localIconChoices);
+      if (!incomingHasPopupDrafts) state.popupDrafts = popupDrafts(old.popupDrafts);
+    }
     else {
       state = old;
       const urls = new Set([...state.sites, ...state.trash.map(item => item.site)].map(item => item.url));
       const ids = new Set([...state.sites, ...state.trash.map(item => item.site)].map(item => item.id));
       function add(item, deletedAt) {
-        if (urls.has(item.url)) { duplicates++; return; }
+        const sourceId = item.id;
+        if (urls.has(item.url)) {
+          duplicates++;
+          const target = [...state.sites, ...state.trash.map(value => value.site)].find(value => value.url === item.url);
+          const choice = Object.prototype.hasOwnProperty.call(incoming.localIconChoices, sourceId) ? incoming.localIconChoices[sourceId] : null;
+          if (target && choice && choice.binding === iconBinding(target.url) && !iconActionFor(state, target)) setIconChoice(state, target.id, choice.action, target.url);
+          const incomingDraft = Object.prototype.hasOwnProperty.call(incoming.popupDrafts, sourceId) ? incoming.popupDrafts[sourceId] : null;
+          if (target && incomingDraft && !Object.prototype.hasOwnProperty.call(state.popupDrafts, target.id)) Object.defineProperty(state.popupDrafts, target.id, { value: { ...incomingDraft, id: target.id }, enumerable: true, writable: true, configurable: true });
+          return;
+        }
         if (ids.has(item.id)) item.id = id();
         ids.add(item.id); urls.add(item.url);
         if (deletedAt) state.trash.push({ site: item, deletedAt });
         else state.sites.push(item);
+        const choice = Object.prototype.hasOwnProperty.call(incoming.localIconChoices, sourceId) ? incoming.localIconChoices[sourceId] : null;
+        if (choice && choice.binding === iconBinding(item.url)) setIconChoice(state, item.id, choice.action, item.url);
+        const incomingDraft = Object.prototype.hasOwnProperty.call(incoming.popupDrafts, sourceId) ? incoming.popupDrafts[sourceId] : null;
+        if (incomingDraft) Object.defineProperty(state.popupDrafts, item.id, { value: { ...incomingDraft, id: item.id }, enumerable: true, writable: true, configurable: true });
       }
       incoming.sites.forEach(item => add(item));
       incoming.trash.forEach(item => add(item.site, item.deletedAt));
@@ -235,14 +306,45 @@
     switch (command.type) {
       case 'saveSite': {
         object(command.site, '网站');
+        if (command.expectedNoHost !== undefined && typeof command.expectedNoHost !== 'boolean') fail('域名检查参数不正确');
         const input = command.site;
         const existing = input.id === undefined ? null : state.sites.find(item => item.id === input.id);
         if (input.id !== undefined && !existing) fail('要编辑的网站不存在');
+        if (command.expectedSite !== undefined) {
+          const expected = site(command.expectedSite);
+          if (!existing || JSON.stringify(existing) !== JSON.stringify(expected)) fail('网站信息刚有更新，请重新打开编辑');
+        }
         const item = site({ ...input, id: existing?.id || id(), createdAt: existing?.createdAt || now.toISOString() });
+        if (!existing && command.expectedNoHost) {
+          const host = url => new URL(url).hostname.toLowerCase().replace(/\.$/, '');
+          if (state.sites.some(other => host(other.url) === host(item.url))) fail('该域名已在主页，请先编辑已有网站');
+        }
         if ([...state.sites, ...state.trash.map(item => item.site)].some(other => other.url === item.url && other.id !== item.id)) fail('这个网址已存在，请先检查网站或收纳');
+        if (existing && command.expectedUrl !== undefined && iconBinding(command.expectedUrl) !== iconBinding(existing.url)) fail('网站网址刚有更新，请重新打开编辑');
+        if (existing && iconBinding(existing.url) !== iconBinding(item.url)) {
+          const action = iconActionFor(state, existing);
+          if (action) setIconChoice(state, item.id, action, item.url);
+          else delete state.localIconChoices[item.id];
+        }
         if (existing) state.sites[state.sites.indexOf(existing)] = item;
         else state.sites.push(item);
+        if (command.iconAction !== undefined) setIconChoice(state, item.id, command.iconAction, item.url);
         result.site = { ...item };
+        break;
+      }
+      case 'setIconChoice': {
+        const item = state.sites.find(site => site.id === command.id);
+        if (!item) fail('要编辑的网站不存在');
+        if (command.expectedUrl === undefined || iconBinding(command.expectedUrl) !== iconBinding(item.url)) fail('网站网址刚有更新，请重新打开编辑');
+        setIconChoice(state, item.id, command.action, item.url);
+        result.action = state.localIconChoices[item.id].action;
+        if (command.expectedPopupDraft !== undefined) {
+          const expected = draft(command.expectedPopupDraft);
+          if (expected && expected.id !== item.id) fail('快捷添加草稿的网站ID不正确');
+          const current = Object.prototype.hasOwnProperty.call(state.popupDrafts, item.id) ? state.popupDrafts[item.id] : null;
+          result.discarded = JSON.stringify(current) === JSON.stringify(expected);
+          if (result.discarded) delete state.popupDrafts[item.id];
+        }
         break;
       }
       case 'deleteSite': {
@@ -257,7 +359,42 @@
         state.sites.push(state.trash.splice(index, 1)[0].site);
         break;
       }
-      case 'draft': state.draft = draft(command.draft); break;
+      case 'draft': {
+        if (command.expectedDraft !== undefined && JSON.stringify(state.draft) !== JSON.stringify(draft(command.expectedDraft))) fail('主页草稿已在其他窗口更新，请先处理其他窗口的草稿');
+        state.draft = draft(command.draft);
+        break;
+      }
+      case 'discardDraft': {
+        if (command.expectedDraft === undefined) fail('丢弃草稿需要当前草稿内容');
+        const expected = draft(command.expectedDraft);
+        result.discarded = JSON.stringify(state.draft) === JSON.stringify(expected);
+        if (result.discarded) state.draft = null;
+        break;
+      }
+      case 'setPopupDraft': {
+        const item = draft(command.draft);
+        if (!item?.id) fail('快捷添加草稿缺少网站ID');
+        const currentSite = state.sites.find(site => site.id === item.id);
+        if (!currentSite) fail('要编辑的网站不存在');
+        if (command.expectedUrl === undefined || iconBinding(command.expectedUrl) !== iconBinding(currentSite.url)) fail('网站网址刚有更新，请重新打开编辑');
+        if (command.expectedDraft === undefined) fail('保存草稿需要当前草稿内容');
+        const expected = draft(command.expectedDraft);
+        if (expected && expected.id !== item.id) fail('快捷添加草稿的网站ID不正确');
+        const current = Object.prototype.hasOwnProperty.call(state.popupDrafts, item.id) ? state.popupDrafts[item.id] : null;
+        if (JSON.stringify(current) !== JSON.stringify(expected)) fail('快捷添加草稿刚有更新，请重新打开编辑');
+        Object.defineProperty(state.popupDrafts, item.id, { value: item, enumerable: true, writable: true, configurable: true });
+        break;
+      }
+      case 'discardPopupDraft': {
+        const key = text(command.id, '网站ID', 120);
+        if (command.expectedDraft === undefined) fail('丢弃草稿需要当前草稿内容');
+        const expected = draft(command.expectedDraft);
+        if (expected && expected.id !== key) fail('快捷添加草稿的网站ID不正确');
+        const current = Object.prototype.hasOwnProperty.call(state.popupDrafts, key) ? state.popupDrafts[key] : null;
+        result.discarded = JSON.stringify(current) === JSON.stringify(expected);
+        if (result.discarded) delete state.popupDrafts[key];
+        break;
+      }
       case 'settings': state.settings = settings({ ...state.settings, ...object(command.settings, '设置') }); break;
       case 'click': {
         const item = state.sites.find(item => item.id === command.id);
@@ -271,8 +408,8 @@
       case 'resetStats': state.stats = []; break;
       case 'claimOpening': {
         day(command.day);
-        result.playOpening = command.browserStartup === true && state.settings.openingEnabled;
-        if (command.browserStartup === true) state.lastVisitDay = command.day;
+        result.playOpening = state.lastVisitDay !== command.day && state.settings.openingEnabled;
+        state.lastVisitDay = command.day;
         break;
       }
       case 'import': {
@@ -293,11 +430,17 @@
       const expected = draft(command.expectedDraft);
       if (JSON.stringify(state.draft) === JSON.stringify(expected)) state.draft = null;
     }
+    if (command.type === 'saveSite' && command.expectedPopupDraft !== undefined) {
+      const expected = draft(command.expectedPopupDraft), item = result.site;
+      if (expected && expected.id !== item.id) fail('快捷添加草稿的网站ID不正确');
+      const current = Object.prototype.hasOwnProperty.call(state.popupDrafts, item.id) ? state.popupDrafts[item.id] : null;
+      if (JSON.stringify(current) === JSON.stringify(expected)) delete state.popupDrafts[item.id];
+    }
     state.revision = value.revision + 1;
     // ponytail: full-state validation and linear click lookup; index stats only if real history makes this slow.
     return { state: validateState(state), result };
   }
-  const api = { GROUPS, MAX_IMPORT_BYTES, MAX_STATE_BYTES, emptyState, validateState, normalizeURL, classifyBookmark, flattenBookmarks, previewImport, apply };
+  const api = { GROUPS, MAX_IMPORT_BYTES, MAX_STATE_BYTES, emptyState, validateState, normalizeURL, iconActionFor, withoutLocalUIState, classifyBookmark, flattenBookmarks, previewImport, apply };
   root.SkyCore = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(globalThis);

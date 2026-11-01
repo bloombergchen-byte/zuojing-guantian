@@ -1,0 +1,19 @@
+.sky-action-picker{font:12px/1.5 "Microsoft YaHei",sans-serif;color:var(--op-ink,#171815);min-width:0}
+.sky-action-picker .sky-actions-heading{margin:0 0 8px;color:var(--op-muted,#65665e)}
+.sky-action-picker .sky-actions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;align-items:start}
+:is(#sky-edge-collage,body) .sky-action-picker .sky-action-choice{display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:0;padding:3px;border:1px solid transparent;border-radius:0;background:transparent;cursor:pointer}
+:is(#sky-edge-collage,body) .sky-action-picker .sky-action-choice[aria-pressed='true']{border-color:var(--op-ink,#171815);background:#eae6d9}
+:is(#sky-edge-collage,body) .sky-action-picker .sky-action-choice:focus-visible{outline:2px solid #a74939;outline-offset:2px}
+:is(#sky-edge-collage,body) .sky-action-picker .sky-actions-toggle{display:inline-block;margin:10px 0 0;padding:2px 0;border:0;border-bottom:1px solid currentColor;border-radius:0;background:transparent;color:inherit;cursor:pointer;font:inherit}
+.sky-action-picker .sky-actions-all{max-height:260px;overflow:auto;overscroll-behavior:contain;margin:10px 0 0;padding:6px 2px}
+.sky-action-icon{position:relative;display:inline-block;width:40px;height:40px;flex:0 0 40px;isolation:isolate}
+.sky-action-icon .site-icon-person{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;filter:grayscale(1)}
+.sky-action-icon .site-icon-brand-plate{position:absolute;z-index:1;display:flex;align-items:center;justify-content:center;background:var(--op-paper,#fbfaf6);border-radius:18%}
+.sky-action-icon .site-icon-brand-plate[data-tone='dark']{background:var(--op-ink,#171815)}
+.sky-action-icon .site-icon-brand-plate[data-tone='dark'] .site-icon-brand[data-source='generic']{filter:invert(1)}
+.sky-action-icon .site-icon-brand{width:100%;height:100%;object-fit:contain}
+.sky-action-icon.known-youtube .site-icon-brand[data-source='packaged']{filter:invert(29%) sepia(56%) saturate(1206%) hue-rotate(325deg) brightness(91%)}
+.sky-action-icon.known-bilibili .site-icon-brand[data-source='packaged']{filter:invert(43%) sepia(18%) saturate(1005%) hue-rotate(156deg) brightness(90%)}
+.sky-action-icon.pose-lie .site-icon-brand-plate{left:12%;top:41%;width:76%;height:45%}
+.sky-action-icon.pose-lean .site-icon-brand-plate{left:43%;top:37%;width:53%;height:48%}
+.sky-action-icon.pose-hug .site-icon-brand-plate{left:31%;top:53%;width:48%;height:45%}
